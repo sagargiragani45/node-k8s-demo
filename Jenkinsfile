@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/sagargiragani45/node-k8s-demo.git'
+                git branch: 'master', url: 'https://github.com/sagargiragani45/node-k8s-demo.git'
             }
         }
 
