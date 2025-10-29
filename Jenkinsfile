@@ -4,53 +4,42 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                 git branch: 'main', url: 'https://github.com/sagargiragani/node-k8s-demo.git'
-    }
-}
-        stage('install dependencies') {
+                git branch: 'master', url: 'https://github.com/sagargiragani45/node-k8s-demo.git'
+            }
+        }
+
+        stage('Build') {
             steps {
                 sh 'npm install'
             }
         }
-        stage('Run Tests') {
+
+        stage('Test') {
             steps {
-                sh 'npm test || echo "no test found" '
+                sh 'npm test'
             }
         }
-        stage('Build Docker Image') {
+
+        stage('Package') {
             steps {
-                script {
-                    
-                    sh "docker build -t ${imageName} ."
-                }
+                sh 'npm run build'
             }
         }
-        stage('Push Docker Image') {
+
+        stage('Archive Artifacts') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                        sh "echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin"
-                        sh "docker tag ${imageName} ${dockerHubRepo}:${imageTag}"
-                        sh "docker push ${dockerHubRepo}:${imageTag}"
-                    }
-                }
+                archiveArtifacts artifacts: '**/build/*.zip', fingerprint: true
             }
         }
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    sh "kubectl apply -f k8s/deployment.yaml"
-                    sh "kubectl apply -f k8s/service.yaml"
-                    sh "kubectl apply -f k8s/ingress.yaml"
-                }
-            }
-        }
-post {
-    success {
-        echo 'Deployment succeeded!'
-    
     }
-    failure {
-        echo 'Deployment failed!'
+
+    post {
+        success {
+            echo 'Build completed successfully!'
+        }
+        failure {
+            echo 'Build failed!'
+        }
     }
-}        
+}
+ 
